@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.basic.project.mapper.UserMapper">
+    
+    <!-- 기본 사용자 정보만 조회하는 최적화된 ResultMap -->
+    <resultMap id="UserBasicResultMap" type="com.basic.project.domain.User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="fullName" column="full_name"/>
+        <result property="phone" column="phone"/>
+        <result property="isActive" column="is_active"/>
+        <result property="passwordChangeRequired" column="password_change_required"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="lastLogin" column="last_login"/>
+    </resultMap>
+    
+    <!-- 역할 포함 ResultMap (필요시에만 사용) -->
+    <resultMap id="UserResultMap" type="com.basic.project.domain.User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="fullName" column="full_name"/>
+        <result property="phone" column="phone"/>
+        <result property="isActive" column="is_active"/>
+        <result property="passwordChangeRequired" column="password_change_required"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="lastLogin" column="last_login"/>
+        <collection property="roles" ofType="com.basic.project.domain.Role">
+            <id property="id" column="role_id"/>
+            <result property="roleName" column="role_name"/>
+            <result property="description" column="role_description"/>
+            <result property="isActive" column="role_is_active"/>
+        </collection>
+    </resultMap>
+    
+    <select id="findById" resultMap="UserResultMap">
+        SELECT 
+            u.id, u.username, u.password, u.email, u.full_name, u.phone, 
+            u.is_active, u.password_change_required, u.created_at, u.updated_at, u.last_login,
+            r.id as role_id, r.role_name, r.description as role_description, r.is_active as role_is_active
+        FROM users u
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        LEFT JOIN roles r ON ur.role_id = r.id
+        WHERE u.id = #{id}
+    </select>
+    
+    <select id="findByUsername" resultMap="UserResultMap">
+        SELECT 
+            u.id, u.username, u.password, u.email, u.full_name, u.phone, 
+            u.is_active, u.password_change_required, u.created_at, u.updated_at, u.last_login,
+            r.id as role_id, r.role_name, r.description as role_description, r.is_active as role_is_active
+        FROM users u
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        LEFT JOIN roles r ON ur.role_id = r.id
+        WHERE u.username = #{username}
+    </select>
+    
+    <select id="findByEmail" resultMap="UserResultMap">
+        SELECT 
+            u.id, u.username, u.password, u.email, u.full_name, u.phone, 
+            u.is_active, u.password_change_required, u.created_at, u.updated_at, u.last_login,
+            r.id as role_id, r.role_name, r.description as role_description, r.is_active as role_is_active
+        FROM users u
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        LEFT JOIN roles r ON ur.role_id = r.id
+        WHERE u.email = #{email}
+    </select>
+    
+    <!-- 최적화된 findAll: 기본 정보만 조회 -->
+    <select id="findAll" resultMap="UserBasicResultMap">
+        SELECT 
+            u.id, u.username, u.password, u.email, u.full_name, u.phone, 
+            u.is_active, u.password_change_required, u.created_at, u.updated_at, u.last_login
+        FROM users u
+        ORDER BY u.created_at DESC
+    </select>
+    
+    <!-- 역할 정보 포함한 전체 조회 (필요시에만 사용) -->
+    <select id="findAllWithRoles" resultMap="UserResultMap">
+        SELECT 
+            u.id, u.username, u.password, u.email, u.full_name, u.phone, 
+            u.is_active, u.password_change_required, u.created_at, u.updated_at, u.last_login,
+            r.id as role_id, r.role_name, r.description as role_description, r.is_active as role_is_active
+        FROM users u
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        LEFT JOIN roles r ON ur.role_id = r.id
+        ORDER BY u.created_at DESC
+    </select>
+    
+    <select id="findByRoleId" resultMap="UserResultMap">
+        SELECT 
+            u.id, u.username, u.password, u.email, u.full_name, u.phone, 
+            u.is_active, u.password_change_required, u.created_at, u.updated_at, u.last_login,
+            r.id as role_id, r.role_name, r.description as role_description, r.is_active as role_is_active
+        FROM users u
+        INNER JOIN user_roles ur ON u.id = ur.user_id
+        INNER JOIN roles r ON ur.role_id = r.id
+        WHERE r.id = #{roleId}
+    </select>
+    
+    <select id="findByActive" resultMap="UserResultMap">
+        SELECT 
+            u.id, u.username, u.password, u.email, u.full_name, u.phone, 
+            u.is_active, u.password_change_required, u.created_at, u.updated_at, u.last_login,
+            r.id as role_id, r.role_name, r.description as role_description, r.is_active as role_is_active
+        FROM users u
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        LEFT JOIN roles r ON ur.role_id = r.id
+        WHERE u.is_active = #{isActive}
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (username, password, email, full_name, phone, is_active, password_change_required)
+        VALUES (#{username}, #{password}, #{email}, #{fullName}, #{phone}, #{isActive}, #{passwordChangeRequired})
+    </insert>
+    
+    <update id="update">
+        UPDATE users 
+        SET username = #{username}, 
+            email = #{email}, 
+            full_name = #{fullName}, 
+            phone = #{phone}, 
+            is_active = #{isActive},
+            password_change_required = #{passwordChangeRequired},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updatePassword">
+        UPDATE users 
+        SET password = #{password}, 
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updateLastLogin">
+        UPDATE users 
+        SET last_login = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updatePasswordChangeRequired">
+        UPDATE users 
+        SET password_change_required = #{required}
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="delete">
+        DELETE FROM users WHERE id = #{id}
+    </delete>
+    
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM users
+    </select>
+    
+    <select id="countTotal" resultType="int">
+        SELECT COUNT(*) FROM users
+    </select>
+    
+    <select id="countByStatus" resultType="int">
+        SELECT COUNT(*) FROM users 
+        WHERE 
+        <choose>
+            <when test="status == 'ACTIVE'">
+                is_active = true
+            </when>
+            <when test="status == 'INACTIVE'">
+                is_active = false
+            </when>
+            <otherwise>
+                1=1
+            </otherwise>
+        </choose>
+    </select>
+    
+    <!-- 최적화된 페이지네이션: 기본 정보만 조회 -->
+    <select id="findWithPagination" resultMap="UserBasicResultMap">
+        SELECT 
+            u.id, u.username, u.password, u.email, u.full_name, u.phone, 
+            u.is_active, u.password_change_required, u.created_at, u.updated_at, u.last_login
+        FROM users u
+        ORDER BY u.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 역할 정보 포함한 페이지네이션 (필요시에만 사용) -->
+    <select id="findWithPaginationAndRoles" resultMap="UserResultMap">
+        SELECT 
+            u.id, u.username, u.password, u.email, u.full_name, u.phone, 
+            u.is_active, u.password_change_required, u.created_at, u.updated_at, u.last_login,
+            r.id as role_id, r.role_name, r.description as role_description, r.is_active as role_is_active
+        FROM users u
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        LEFT JOIN roles r ON ur.role_id = r.id
+        ORDER BY u.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 특정 사용자들의 역할 정보를 배치로 조회 -->
+    <select id="findRolesByUserIds" resultType="map">
+        SELECT 
+            ur.user_id,
+            r.id as role_id,
+            r.role_name,
+            r.description,
+            r.is_active as role_is_active
+        FROM user_roles ur
+        INNER JOIN roles r ON ur.role_id = r.id
+        WHERE ur.user_id IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+        ORDER BY ur.user_id, r.role_name
+    </select>
+    
+    <insert id="insertUserRole">
+        INSERT INTO user_roles (user_id, role_id) VALUES (#{userId}, #{roleId})
+    </insert>
+    
+    <delete id="deleteUserRoles">
+        DELETE FROM user_roles WHERE user_id = #{userId}
+    </delete>
+    
+    <select id="findRolesByUserId" resultType="string">
+        SELECT r.role_name
+        FROM roles r
+        INNER JOIN user_roles ur ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId}
+    </select>
+    
+    <select id="findRoleByName" resultType="com.basic.project.domain.Role">
+        SELECT 
+            id, role_name as roleName, description, is_active as isActive, 
+            created_at as createdAt, updated_at as updatedAt
+        FROM roles 
+        WHERE role_name = #{roleName}
+    </select>
+</mapper>

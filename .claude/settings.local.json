@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(ls:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(pkill:*)",
+      "Bash(mysql:*)",
+      "Bash(cmd /c:*)",
+      "Bash(powershell:*)",
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 9.1\\bin\\mysql.exe\" -u root -p basic_project -e \"SELECT menu_name, menu_code, url, order_num FROM menus WHERE menu_code IN (''advanced-search'', ''system-monitoring'', ''security-settings'');\")",
+      "Bash(jps:*)",
+      "Bash(mkdir:*)",
+      "Bash(move:*)",
+      "Bash(robocopy \"C:\\ai\\ai_basic\\backend\\src\\main\\java\\com\\basic\\project\\config\" \"C:\\ai\\ai_basic\\backend\\src\\main\\java\\com\\basic\\project\\interceptor\" LoggingInterceptor.java /MOV)",
+      "Bash(robocopy \"C:\\ai\\ai_basic\\backend\\src\\main\\java\\com\\basic\\project\\config\" \"C:\\ai\\ai_basic\\backend\\src\\main\\java\\com\\basic\\project\\interceptor\" MetricsInterceptor.java /MOV)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}

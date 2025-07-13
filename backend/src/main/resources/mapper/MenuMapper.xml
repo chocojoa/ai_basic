@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.basic.project.mapper.MenuMapper">
+    
+    <resultMap id="MenuResultMap" type="com.basic.project.domain.Menu">
+        <id property="id" column="id"/>
+        <result property="menuName" column="menu_name"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="url" column="url"/>
+        <result property="icon" column="icon"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="isVisible" column="is_visible"/>
+        <result property="isActive" column="is_active"/>
+        <result property="description" column="description"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <resultMap id="MenuWithChildrenResultMap" type="com.basic.project.domain.Menu" extends="MenuResultMap">
+        <collection property="children" ofType="com.basic.project.domain.Menu">
+            <id property="id" column="child_id"/>
+            <result property="menuName" column="child_menu_name"/>
+            <result property="parentId" column="child_parent_id"/>
+            <result property="url" column="child_url"/>
+            <result property="icon" column="child_icon"/>
+            <result property="orderNum" column="child_order_num"/>
+            <result property="isVisible" column="child_is_visible"/>
+            <result property="isActive" column="child_is_active"/>
+            <result property="description" column="child_description"/>
+            <result property="createdAt" column="child_created_at"/>
+            <result property="updatedAt" column="child_updated_at"/>
+        </collection>
+    </resultMap>
+    
+    <select id="findById" resultMap="MenuResultMap">
+        SELECT * FROM menus WHERE id = #{id}
+    </select>
+    
+    <select id="findAll" resultMap="MenuResultMap">
+        SELECT * FROM menus ORDER BY parent_id, order_num
+    </select>
+    
+    <select id="findByParentId" resultMap="MenuResultMap">
+        SELECT * FROM menus 
+        WHERE parent_id = #{parentId} 
+        ORDER BY order_num
+    </select>
+    
+    <select id="findRootMenus" resultMap="MenuResultMap">
+        SELECT * FROM menus 
+        WHERE parent_id IS NULL 
+        ORDER BY order_num
+    </select>
+    
+    <select id="findByUserId" resultMap="MenuResultMap">
+        SELECT DISTINCT m.* 
+        FROM menus m
+        INNER JOIN role_menus rm ON m.id = rm.menu_id
+        INNER JOIN user_roles ur ON rm.role_id = ur.role_id
+        WHERE ur.user_id = #{userId}
+        AND m.is_active = true
+        AND m.is_visible = true
+        ORDER BY m.parent_id, m.order_num
+    </select>
+    
+    <select id="findVisibleMenus" resultMap="MenuResultMap">
+        SELECT * FROM menus 
+        WHERE is_visible = true 
+        ORDER BY parent_id, order_num
+    </select>
+    
+    <select id="findActiveMenus" resultMap="MenuResultMap">
+        SELECT * FROM menus 
+        WHERE is_active = true 
+        ORDER BY parent_id, order_num
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO menus (
+            menu_name, parent_id, url, icon, order_num, 
+            is_visible, is_active, description, created_at, updated_at
+        ) VALUES (
+            #{menuName}, #{parentId}, #{url}, #{icon}, #{orderNum},
+            #{isVisible}, #{isActive}, #{description}, NOW(), NOW()
+        )
+    </insert>
+    
+    <update id="update">
+        UPDATE menus SET
+            menu_name = #{menuName},
+            parent_id = #{parentId},
+            url = #{url},
+            icon = #{icon},
+            order_num = #{orderNum},
+            is_visible = #{isVisible},
+            is_active = #{isActive},
+            description = #{description},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="delete">
+        DELETE FROM menus WHERE id = #{id}
+    </delete>
+    
+    <update id="updateSortOrder">
+        UPDATE menus SET order_num = #{sortOrder}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updateVisibility">
+        UPDATE menus SET is_visible = #{isVisible}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM menus
+    </select>
+    
+    <select id="findWithPagination" resultMap="MenuResultMap">
+        SELECT * FROM menus 
+        ORDER BY parent_id, order_num
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <select id="search" resultMap="MenuResultMap">
+        SELECT * FROM menus 
+        WHERE menu_name LIKE CONCAT('%', #{keyword}, '%')
+        OR description LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY parent_id, order_num
+    </select>
+    
+    <select id="hasChildren" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM menus WHERE parent_id = #{parentId}
+    </select>
+    
+    <select id="findByMenuName" resultMap="MenuResultMap">
+        SELECT * FROM menus WHERE menu_name = #{menuName}
+    </select>
+    
+    <select id="findByMenuCode" resultMap="MenuResultMap">
+        SELECT * FROM menus WHERE menu_code = #{menuCode}
+    </select>
+    
+    <select id="findAccessibleMenusByRoles" resultType="string">
+        SELECT DISTINCT m.menu_name
+        FROM menus m
+        INNER JOIN role_menus rm ON m.id = rm.menu_id
+        INNER JOIN roles r ON rm.role_id = r.id
+        WHERE r.role_name IN
+        <foreach collection="roles" item="role" open="(" separator="," close=")">
+            #{role}
+        </foreach>
+        AND m.is_active = true
+        AND m.is_visible = true
+        ORDER BY m.order_num
+    </select>
+    
+</mapper>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.basic.project.mapper.RoleMapper">
+    
+    <resultMap id="RoleResultMap" type="com.basic.project.domain.Role">
+        <id property="id" column="id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="description" column="description"/>
+        <result property="isActive" column="is_active"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <collection property="menus" ofType="com.basic.project.domain.Menu">
+            <id property="id" column="menu_id"/>
+            <result property="menuName" column="menu_name"/>
+            <result property="parentId" column="parent_id"/>
+            <result property="url" column="url"/>
+            <result property="icon" column="icon"/>
+            <result property="orderNum" column="order_num"/>
+            <result property="isVisible" column="is_visible"/>
+            <result property="isActive" column="menu_is_active"/>
+            <result property="description" column="menu_description"/>
+        </collection>
+    </resultMap>
+    
+    <select id="findById" resultMap="RoleResultMap">
+        SELECT 
+            r.id, r.role_name, r.description, r.is_active, r.created_at, r.updated_at,
+            m.id as menu_id, m.menu_name, m.parent_id, m.url, m.icon, m.order_num, 
+            m.is_visible, m.is_active as menu_is_active, m.description as menu_description
+        FROM roles r
+        LEFT JOIN role_menus rm ON r.id = rm.role_id
+        LEFT JOIN menus m ON rm.menu_id = m.id
+        WHERE r.id = #{id}
+    </select>
+    
+    <select id="findByRoleName" resultMap="RoleResultMap">
+        SELECT 
+            r.id, r.role_name, r.description, r.is_active, r.created_at, r.updated_at,
+            m.id as menu_id, m.menu_name, m.parent_id, m.url, m.icon, m.order_num, 
+            m.is_visible, m.is_active as menu_is_active, m.description as menu_description
+        FROM roles r
+        LEFT JOIN role_menus rm ON r.id = rm.role_id
+        LEFT JOIN menus m ON rm.menu_id = m.id
+        WHERE r.role_name = #{roleName}
+    </select>
+    
+    <select id="findAll" resultMap="RoleResultMap">
+        SELECT 
+            r.id, r.role_name, r.description, r.is_active, r.created_at, r.updated_at,
+            m.id as menu_id, m.menu_name, m.parent_id, m.url, m.icon, m.order_num, 
+            m.is_visible, m.is_active as menu_is_active, m.description as menu_description
+        FROM roles r
+        LEFT JOIN role_menus rm ON r.id = rm.role_id
+        LEFT JOIN menus m ON rm.menu_id = m.id
+        ORDER BY r.id DESC
+    </select>
+    
+    <select id="findByActive" resultMap="RoleResultMap">
+        SELECT 
+            r.id, r.role_name, r.description, r.is_active, r.created_at, r.updated_at,
+            m.id as menu_id, m.menu_name, m.parent_id, m.url, m.icon, m.order_num, 
+            m.is_visible, m.is_active as menu_is_active, m.description as menu_description
+        FROM roles r
+        LEFT JOIN role_menus rm ON r.id = rm.role_id
+        LEFT JOIN menus m ON rm.menu_id = m.id
+        WHERE r.is_active = #{isActive}
+        ORDER BY r.created_at DESC
+    </select>
+    
+    <select id="findByUserRole" resultMap="RoleResultMap">
+        SELECT 
+            r.id, r.role_name, r.description, r.is_active, r.created_at, r.updated_at,
+            m.id as menu_id, m.menu_name, m.parent_id, m.url, m.icon, m.order_num, 
+            m.is_visible, m.is_active as menu_is_active, m.description as menu_description
+        FROM roles r
+        INNER JOIN user_roles ur ON r.id = ur.role_id
+        LEFT JOIN role_menus rm ON r.id = rm.role_id
+        LEFT JOIN menus m ON rm.menu_id = m.id
+        WHERE ur.user_id = #{userId}
+        ORDER BY r.created_at DESC
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO roles (role_name, description, is_active)
+        VALUES (#{roleName}, #{description}, #{isActive})
+    </insert>
+    
+    <update id="update">
+        UPDATE roles 
+        SET role_name = #{roleName}, 
+            description = #{description}, 
+            is_active = #{isActive},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="delete">
+        DELETE FROM roles WHERE id = #{id}
+    </delete>
+    
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM roles
+    </select>
+    
+    <select id="findWithPagination" resultMap="RoleResultMap">
+        SELECT 
+            r.id, r.role_name, r.description, r.is_active, r.created_at, r.updated_at,
+            m.id as menu_id, m.menu_name, m.parent_id, m.url, m.icon, m.order_num, 
+            m.is_visible, m.is_active as menu_is_active, m.description as menu_description
+        FROM roles r
+        LEFT JOIN role_menus rm ON r.id = rm.role_id
+        LEFT JOIN menus m ON rm.menu_id = m.id
+        ORDER BY r.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <insert id="assignRoleToUser">
+        INSERT INTO user_roles (user_id, role_id)
+        VALUES (#{userId}, #{roleId})
+    </insert>
+    
+    <delete id="removeRoleFromUser">
+        DELETE FROM user_roles 
+        WHERE user_id = #{userId} AND role_id = #{roleId}
+    </delete>
+    
+    <select id="findRolesByUserId" resultMap="RoleResultMap">
+        SELECT 
+            r.id, r.role_name, r.description, r.is_active, r.created_at, r.updated_at,
+            m.id as menu_id, m.menu_name, m.parent_id, m.url, m.icon, m.order_num, 
+            m.is_visible, m.is_active as menu_is_active, m.description as menu_description
+        FROM roles r
+        INNER JOIN user_roles ur ON r.id = ur.role_id
+        LEFT JOIN role_menus rm ON r.id = rm.role_id
+        LEFT JOIN menus m ON rm.menu_id = m.id
+        WHERE ur.user_id = #{userId}
+        ORDER BY r.role_name
+    </select>
+    
+    <select id="findUserIdsByRoleId" resultType="Long">
+        SELECT user_id 
+        FROM user_roles 
+        WHERE role_id = #{roleId}
+    </select>
+    
+    <select id="existsByRoleName" resultType="boolean">
+        SELECT COUNT(*) > 0 
+        FROM roles 
+        WHERE role_name = #{roleName}
+    </select>
+    
+    <select id="isRoleAssignedToUser" resultType="boolean">
+        SELECT COUNT(*) > 0 
+        FROM user_roles 
+        WHERE user_id = #{userId} AND role_id = #{roleId}
+    </select>
+</mapper>

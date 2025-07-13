@@ -1,0 +1,53 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${prod.database.username}
+    password: ${prod.database.password}
+    hikari:
+      maximum-pool-size: 30
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+
+logging:
+  level:
+    root: WARN
+    com.basic.project: INFO
+    org.springframework.security: WARN
+    org.springframework.jdbc.core: WARN
+    org.mybatis: WARN
+    jdbc: OFF
+  file:
+    name: logs/basic-project-prod.log
+    max-size: 50MB
+    max-history: 60
+
+jwt:
+  secret: ${prod.jwt.secret}
+  expiration: ${JWT_EXPIRATION:3600000}  # 1시간 (밀리초)
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:86400000}  # 24시간 (밀리초)
+  header: Authorization
+  prefix: Bearer
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+server:
+  error:
+    include-stacktrace: never
+    include-message: never

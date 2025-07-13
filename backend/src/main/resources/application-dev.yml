@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://dev-server:3306/basic_project?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&logger=com.mysql.cj.log.Slf4JLogger&profileSQL=true
+    username: ${dev.database.username}
+    password: ${dev.database.password}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+logging:
+  level:
+    root: INFO
+    com.basic.project: DEBUG
+    org.springframework.security: INFO
+    org.springframework.jdbc.core: DEBUG
+    org.mybatis: DEBUG
+    com.basic.project.mapper: DEBUG
+    jdbc.sqltiming: DEBUG
+    jdbc.sqlonly: DEBUG
+    jdbc.audit: OFF
+    jdbc.resultset: OFF
+    jdbc.connection: OFF
+
+jwt:
+  secret: ${dev.jwt.secret}
+  expiration: ${JWT_EXPIRATION:86400000}  # 24시간 (밀리초)
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7일 (밀리초)
+  header: Authorization
+  prefix: Bearer
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

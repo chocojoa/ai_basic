@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.basic.project.mapper.RoleMenuMapper">
+    
+    <resultMap id="RoleMenuResultMap" type="com.basic.project.domain.RoleMenu">
+        <id property="id" column="id"/>
+        <result property="roleId" column="role_id"/>
+        <result property="menuId" column="menu_id"/>
+        <result property="canRead" column="can_read"/>
+        <result property="canWrite" column="can_write"/>
+        <result property="canDelete" column="can_delete"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <resultMap id="RoleMenuWithDetailsResultMap" type="com.basic.project.domain.RoleMenu">
+        <id property="id" column="id"/>
+        <result property="roleId" column="role_id"/>
+        <result property="menuId" column="menu_id"/>
+        <result property="canRead" column="can_read"/>
+        <result property="canWrite" column="can_write"/>
+        <result property="canDelete" column="can_delete"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <select id="findById" resultMap="RoleMenuResultMap">
+        SELECT id, role_id, menu_id, can_read, can_write, can_delete, created_at, updated_at
+        FROM role_menus
+        WHERE id = #{id}
+    </select>
+    
+    <select id="findByRoleIdAndMenuId" resultMap="RoleMenuResultMap">
+        SELECT id, role_id, menu_id, can_read, can_write, can_delete, created_at, updated_at
+        FROM role_menus
+        WHERE role_id = #{roleId} AND menu_id = #{menuId}
+    </select>
+    
+    <select id="findByRoleId" resultMap="RoleMenuResultMap">
+        SELECT id, role_id, menu_id, can_read, can_write, can_delete, created_at, updated_at
+        FROM role_menus
+        WHERE role_id = #{roleId}
+        ORDER BY menu_id
+    </select>
+    
+    <select id="findByMenuId" resultMap="RoleMenuResultMap">
+        SELECT id, role_id, menu_id, can_read, can_write, can_delete, created_at, updated_at
+        FROM role_menus
+        WHERE menu_id = #{menuId}
+        ORDER BY role_id
+    </select>
+    
+    <select id="findAll" resultMap="RoleMenuResultMap">
+        SELECT id, role_id, menu_id, can_read, can_write, can_delete, created_at, updated_at
+        FROM role_menus
+        ORDER BY role_id, menu_id
+    </select>
+    
+    <select id="findByRoleIdWithMenuDetails" resultMap="RoleMenuWithDetailsResultMap">
+        SELECT 
+            rm.id, rm.role_id, rm.menu_id, rm.can_read, rm.can_write, rm.can_delete, 
+            rm.created_at, rm.updated_at
+        FROM role_menus rm
+        WHERE rm.role_id = #{roleId}
+        ORDER BY rm.menu_id
+    </select>
+    
+    <select id="findByMenuIdWithRoleDetails" resultMap="RoleMenuWithDetailsResultMap">
+        SELECT 
+            rm.id, rm.role_id, rm.menu_id, rm.can_read, rm.can_write, rm.can_delete, 
+            rm.created_at, rm.updated_at
+        FROM role_menus rm
+        WHERE rm.menu_id = #{menuId}
+        ORDER BY rm.role_id
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO role_menus (role_id, menu_id, can_read, can_write, can_delete)
+        VALUES (#{roleId}, #{menuId}, #{canRead}, #{canWrite}, #{canDelete})
+    </insert>
+    
+    <insert id="batchInsert">
+        INSERT INTO role_menus (role_id, menu_id, can_read, can_write, can_delete)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.roleId}, #{item.menuId}, #{item.canRead}, #{item.canWrite}, #{item.canDelete})
+        </foreach>
+    </insert>
+    
+    <update id="update">
+        UPDATE role_menus 
+        SET can_read = #{canRead}, 
+            can_write = #{canWrite}, 
+            can_delete = #{canDelete},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="delete">
+        DELETE FROM role_menus WHERE id = #{id}
+    </delete>
+    
+    <delete id="deleteByRoleId">
+        DELETE FROM role_menus WHERE role_id = #{roleId}
+    </delete>
+    
+    <delete id="deleteByMenuId">
+        DELETE FROM role_menus WHERE menu_id = #{menuId}
+    </delete>
+    
+    <delete id="deleteByRoleIdAndMenuId">
+        DELETE FROM role_menus WHERE role_id = #{roleId} AND menu_id = #{menuId}
+    </delete>
+    
+    <delete id="batchDeleteByRoleId">
+        DELETE FROM role_menus WHERE role_id = #{roleId}
+    </delete>
+    
+    <select id="findPermissionsByUserId" resultMap="RoleMenuResultMap">
+        SELECT DISTINCT rm.id, rm.role_id, rm.menu_id, rm.can_read, rm.can_write, rm.can_delete, 
+               rm.created_at, rm.updated_at
+        FROM role_menus rm
+        INNER JOIN user_roles ur ON rm.role_id = ur.role_id
+        WHERE ur.user_id = #{userId}
+        ORDER BY rm.menu_id
+    </select>
+    
+    <select id="hasPermission" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM role_menus rm
+        INNER JOIN user_roles ur ON rm.role_id = ur.role_id
+        WHERE ur.user_id = #{userId} 
+          AND rm.menu_id = #{menuId}
+          AND (
+            <choose>
+                <when test="permissionType == 'READ'">
+                    rm.can_read = TRUE
+                </when>
+                <when test="permissionType == 'WRITE'">
+                    rm.can_write = TRUE
+                </when>
+                <when test="permissionType == 'DELETE'">
+                    rm.can_delete = TRUE
+                </when>
+                <otherwise>
+                    FALSE
+                </otherwise>
+            </choose>
+          )
+    </select>
+    
+    <select id="findMenuIdsByRoleId" resultType="Long">
+        SELECT menu_id FROM role_menus WHERE role_id = #{roleId}
+    </select>
+    
+    <select id="findRoleIdsByMenuId" resultType="Long">
+        SELECT role_id FROM role_menus WHERE menu_id = #{menuId}
+    </select>
+    
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM role_menus
+    </select>
+    
+    <select id="findWithPagination" resultMap="RoleMenuResultMap">
+        SELECT id, role_id, menu_id, can_read, can_write, can_delete, created_at, updated_at
+        FROM role_menus
+        ORDER BY role_id, menu_id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <select id="existsByRoleIdAndMenuId" resultType="boolean">
+        SELECT COUNT(*) > 0 
+        FROM role_menus 
+        WHERE role_id = #{roleId} AND menu_id = #{menuId}
+    </select>
+</mapper>

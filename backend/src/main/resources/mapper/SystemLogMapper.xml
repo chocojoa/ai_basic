@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.basic.project.mapper.SystemLogMapper">
+    
+    <resultMap id="SystemLogResultMap" type="com.basic.project.domain.SystemLog">
+        <id property="id" column="id"/>
+        <result property="level" column="level"/>
+        <result property="username" column="username"/>
+        <result property="action" column="action"/>
+        <result property="message" column="message"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="userAgent" column="user_agent"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="details" column="details"/>
+    </resultMap>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO system_logs (level, username, action, message, ip_address, user_agent, details)
+        VALUES (#{level}, #{username}, #{action}, #{message}, #{ipAddress}, #{userAgent}, #{details})
+    </insert>
+    
+    <select id="findAll" resultMap="SystemLogResultMap">
+        SELECT * FROM system_logs
+        ORDER BY created_at DESC
+    </select>
+    
+    <select id="findWithPagination" resultMap="SystemLogResultMap">
+        SELECT * FROM system_logs
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <select id="search" resultMap="SystemLogResultMap">
+        SELECT * FROM system_logs
+        <where>
+            <if test="startDate != null">
+                AND created_at >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND created_at &lt;= #{endDate}
+            </if>
+            <if test="level != null and level != ''">
+                AND level = #{level}
+            </if>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="action != null and action != ''">
+                AND action LIKE CONCAT('%', #{action}, '%')
+            </if>
+            <if test="search != null and search != ''">
+                AND (
+                    message LIKE CONCAT('%', #{search}, '%')
+                    OR action LIKE CONCAT('%', #{search}, '%')
+                    OR username LIKE CONCAT('%', #{search}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        <if test="size > 0">
+            LIMIT #{size} OFFSET #{page}
+        </if>
+    </select>
+    
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM system_logs
+    </select>
+    
+    <select id="countBySearch" resultType="int">
+        SELECT COUNT(*) FROM system_logs
+        <where>
+            <if test="startDate != null">
+                AND created_at >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND created_at &lt;= #{endDate}
+            </if>
+            <if test="level != null and level != ''">
+                AND level = #{level}
+            </if>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="action != null and action != ''">
+                AND action LIKE CONCAT('%', #{action}, '%')
+            </if>
+            <if test="search != null and search != ''">
+                AND (
+                    message LIKE CONCAT('%', #{search}, '%')
+                    OR action LIKE CONCAT('%', #{search}, '%')
+                    OR username LIKE CONCAT('%', #{search}, '%')
+                )
+            </if>
+        </where>
+    </select>
+    
+    <select id="countByLevel" resultType="long">
+        SELECT COUNT(*) FROM system_logs WHERE level = #{level}
+    </select>
+    
+    <select id="getStats" resultType="com.basic.project.dto.LogStatsResponse">
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN level = 'INFO' THEN 1 ELSE 0 END) as info,
+            SUM(CASE WHEN level = 'WARNING' THEN 1 ELSE 0 END) as warning,
+            SUM(CASE WHEN level = 'ERROR' THEN 1 ELSE 0 END) as error
+        FROM system_logs
+    </select>
+    
+    <select id="getTodayLogsCount" resultType="int">
+        SELECT COUNT(*) 
+        FROM system_logs 
+        WHERE DATE(created_at) = CURDATE()
+    </select>
+    
+    <select id="countByDateRange" resultType="int">
+        SELECT COUNT(*) 
+        FROM system_logs 
+        WHERE created_at BETWEEN #{startDate} AND #{endDate}
+    </select>
+    
+    <delete id="deleteOldLogs">
+        DELETE FROM system_logs 
+        WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL #{days} DAY)
+    </delete>
+</mapper>
